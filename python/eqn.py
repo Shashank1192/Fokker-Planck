@@ -9,7 +9,7 @@ class QuasiLinearPDE0(object):
     u(0, x) = initial condition
     u(t, x) = g(t, x) boundary condition at the boundary of the space domain
     """
-    def __init__(self, diff_op, init_cond, bdry_cond, space_domain, time_domain):
+    def __init__(self, loss, space_domain, time_domain):
         """
         Description: Constructor for QuasiLinearPDE0
         Args:   diff_op: differential operator L
@@ -18,9 +18,7 @@ class QuasiLinearPDE0(object):
                 space_domain: box doamin for space in form of a dx2 matrix, d = space dimension
                 time_domain: domain of time as a list/tuple/np.array [a, b]
         """
-        self.diff_op = diff_op
-        self.init_cond = init_cond
-        self.bdry_cond = bdry_cond
+        self.loss = loss
         self.space_domain = np.array(space_domain)
         self.time_domain = time_domain
         self.space_dim = self.space_domain.shape[0]
@@ -39,6 +37,7 @@ class QuasiLinearPDE0(object):
         a, b = self.time_domain
         self.samples[:, self.space_dim] = (b - a)*np.random.random(num_samples) + a
         return self.samples
+
 
 
 """

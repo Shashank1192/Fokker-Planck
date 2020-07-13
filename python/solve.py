@@ -21,8 +21,8 @@ def dgm_layer(l, x, s_1, s_l, num_nodes):
     return tf.keras.layers.Add(name = 's_' + str(l+1))([one__gh, zs])
 
 # creates the full DGM architechture as a tensorflow model
-def dgm_model(space_dim, num_nodes, num_hidden_layers, name = "Fokker-Planck solver"):
-    x = tf.keras.Input(shape = (space_dim + 1, 1), name = 'x')
+def dgm_model(space_dim, num_nodes, num_hidden_layers, name = "FP_solver"):
+    x = tf.keras.Input(shape = (space_dim + 1, ), name = 'x')
     s_1 = tf.keras.layers.Dense(units = num_nodes, activation = 'tanh', name = 's_1')(x)
     s_l = s_1
     for l in range(1, num_hidden_layers):
