@@ -5,10 +5,24 @@ space_dim = 3
 
 model = solve.dgm_model(space_dim, 5, 3)
 
+a = tf.constant([1, 2, 3], dtype=tf.float32)
+
+
+def loss(x_):
+    return tf.reduce_sum(tf.math.square(x_), axis = 0)
 
 @tf.function
-def loss(x_):
-    return tf.reduce_sum(tf.math.square(x_), axis = 1)
+def comp_hess(f, x):
+    #f = tf.reduce_sum(tf.math.square(x), axis = 0)
+    hes = tf.hessians(f(x), x)
+    return hes
+
+
+d2y_d2x = comp_hess(loss,a)
+print(d2y_d2x)
+
+
+
 
 x = tf.constant([[1,2,3,4]], dtype = 'float32')
 with tf.GradientTape() as tape:
