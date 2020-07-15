@@ -32,6 +32,16 @@ def dgm_model(space_dim, num_nodes, num_hidden_layers, name = "FP_solver"):
     tf.keras.utils.plot_model(model, "../images/{}.png".format(model.name), show_shapes=True)
     return model
 
+# computes gradient of a function
+@tf.function
+def comp_grad(f, x):
+    return tf.gradients(f(x), x)
+
+# computes hessian of a function
+@tf.function
+def comp_hess(f, x):
+    return tf.hessians(f(x), x)
+
 class DGMSolver(object):
     """
     Implements a Python object that solves quasi-linear parabolic PDEs using DGM architechture
