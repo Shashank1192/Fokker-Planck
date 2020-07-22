@@ -7,9 +7,9 @@ def func(x):
 def func_out(input_shape):
     return (input_shape[0], 1, )
 
-x = tf.keras.Input(shape = (None, 3, 1), name = 'x')
+x = tf.keras.Input(shape = (3, 1), name = 'x')
 func_layer = tf.keras.layers.Lambda(func, output_shape = func_out)(x)
 model = tf.keras.Model(inputs = x, outputs = func_layer, name = 'func_model')
 
-a = tf.constant(np.array([[1, 2, 3], [4,5,6]]), dtype=tf.float32)
+a = tf.constant(np.array([[1], [2], [3]]), dtype=tf.float32)
 print(model(a))
