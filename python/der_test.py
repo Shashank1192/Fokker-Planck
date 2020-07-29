@@ -38,7 +38,7 @@ def comp_partial(f, x, i):
 def model_hess(x):
     return tf.hessians(model(x), x)
 
-
+"""
 comp_partial(loss, a, 0)
 comp_grad(loss, a)
 comp_single_hess(loss, [a[0]])
@@ -52,3 +52,4 @@ comp_hess(loss, a)
 comp_grad(model, a)
 model_hess(a)
 comp_partial(model, a, 0)
+"""
