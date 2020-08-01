@@ -53,3 +53,10 @@ comp_grad(model, a)
 model_hess(a)
 comp_partial(model, a, 0)
 """
+
+def grad(f, x):
+    h = 1e-6*tf.ones_like(x)
+    return (f(x+h) - f(x-h))/2.0
+
+
+#grad(model, a)
