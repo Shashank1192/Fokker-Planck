@@ -46,7 +46,9 @@ def hess(func, input):
                 hy = np.zeros(dim)
                 hy[j] = dy
                 hy = tf.constant(hy, dtype = tf.float64)
-                row_partials.append((func(x + hx + hy) - func(x - hx + hy) - func(x + hx - hy) + func(x - hx - hy))/(4*dx*dy))
+                left = (func(x + hx + hy) - func(x - hx + hy))/(2*dx)
+                right = (func(x + hx - hy) - func(x - hx - hy))/(2*dx)
+                row_partials.append((left-right)/(2*dy))
             #print("row {}".format(row_partials))
             hessian.append(tf.concat(row_partials, 0))
         hessians.append(tf.stack(hessian))
