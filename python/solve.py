@@ -21,8 +21,8 @@ def dgm_layer(l, x, s_1, s_l, num_nodes):
     return tf.keras.layers.Add(name = 's_' + str(l+1))([one__gh, zs])
 
 # creates the full DGM architechture as a tensorflow model
-def dgm_model(space_dim, num_nodes, num_hidden_layers, name = "FP_solver"):
-    x = tf.keras.Input(shape = [None, space_dim + 1, ], name = 'x')
+def dgm_model(dim, num_nodes, num_hidden_layers, name = "FP_solver"):
+    x = tf.keras.Input(shape = [None, dim + 1, ], name = 'x')
     s_1 = tf.keras.layers.Dense(units = num_nodes, activation = 'tanh', name = 's_1')(x)
     s_l = s_1
     for l in range(1, num_hidden_layers):
@@ -32,25 +32,15 @@ def dgm_model(space_dim, num_nodes, num_hidden_layers, name = "FP_solver"):
     tf.keras.utils.plot_model(model, "../images/{}.png".format(model.name), show_shapes=True)
     return model
 
-# computes gradient of a function
-@tf.function
-def comp_grad(f, x):
-    return tf.gradients(f(x), x)
-
-# computes hessian of a function
-@tf.function
-def comp_hess(f, x):
-    return tf.hessians(f(x), x)
-
 class DGMSolver(object):
     """
     Implements a Python object that solves quasi-linear parabolic PDEs using DGM architechture
     """
-    def __init__(self, eqn, space_dim, num_nodes, num_hidden_layers, name = "DGMSolver"):
+    def __init__(self, eqn, dim, num_nodes, num_hidden_layers, name = "DGMSolver"):
         self.eqn = eqn
-        self.space_dim = space_dim
+        self.dim = dim
         self.num_nodes = num_nodes
         self.num_hidden_layers = num_hidden_layers
         self.name = name
-#model = dgm_model(space_dim = 2, num_nodes = 50, num_hidden_layers = 4)
+#model = dgm_model(dim = 2, num_nodes = 50, num_hidden_layers = 4)
 #model.summary()

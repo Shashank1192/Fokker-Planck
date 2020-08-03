@@ -18,7 +18,7 @@ class QuasiLinearPDE0(object):
                 space_domain: box doamin for space in form of a dx2 matrix, d = space dimension
                 time_domain: domain of time as a list/tuple/np.array [a, b]
         """
-        self.loss = loss
+        self.diff_op = diff_op
         self.space_domain = np.array(space_domain)
         self.time_domain = time_domain
         self.space_dim = self.space_domain.shape[0]
@@ -28,7 +28,7 @@ class QuasiLinearPDE0(object):
         """
         Description: sampling function for space-time domain
         Args: number of samples to generate
-        Returns: an np.array where each row each is a singular sample from the space=-time domain with the last coordinate being time
+        Returns: an np.array where each row each is a singular sample from the space-time domain with the last coordinate being time
         """
         self.samples = np.zeros((num_samples, self.space_dim + 1))
         for j in range(self.space_dim):

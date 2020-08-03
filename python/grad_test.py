@@ -30,10 +30,9 @@ def grad(func, input):
 
 
 def hess(func, input):
-    dx, dy = 1e-6, 1e-6
+    dx, dy = 1e-4, 1e-4
     dim = tf.shape(input)[1]
     hessians = []
-    print(dim)
     for t in input:
         x = tf.reshape(t, (1, dim))
         hessian = []
@@ -53,3 +52,21 @@ def hess(func, input):
             hessian.append(tf.concat(row_partials, 0))
         hessians.append(tf.stack(hessian))
     return tf.stack(hessians)
+
+def mixed_partial(func, input, i, j):
+    dx, dy = 1e-4, 1e-4
+    dim = tf.shape(input)[1]
+    partials = []
+    hx = np.zeros(dim)
+    hx[i] = dx
+    hx = tf.constant(hx, dtype = tf.float64)
+    hy = np.zeros(dim)
+    hy[j] = dy
+    hy = tf.constant(hy, dtype = tf.float64)
+    for t in input:
+        x = tf.reshape(t, (1, dim))
+        left = (func(x + hx + hy) - func(x - hx + hy))/(2*dx)
+        right = (func(x + hx - hy) - func(x - hx - hy))/(2*dx)
+        partials.append((left-right)/(2*dy))
+        #print("row {}".format(row_partials))
+    return tf.stack(partials)

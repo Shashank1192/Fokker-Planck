@@ -25,5 +25,6 @@ dt.comp_grad(model_, a)
 print(dt.grad(model_, a))
 model__hess(a)
 
-print(gt.grad(func, a))
-print(gt.hess(func, a))
+#print(gt.grad(func, a))
+#print(gt.hess(func, a))
+print(0.5**2*gt.mixed_partial(func, a, 2, 2))
