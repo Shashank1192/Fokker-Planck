@@ -5,7 +5,7 @@ import utility as ut
 class QuasiLinearPDE0(object):
     """
     Implements Fokker-Planck type quasi-linear parabolic PDEs
-    u_t + Lu = 0, (t, x) in box domain
+    u_t + Lu = 0, (t, x) in a box domain
     u(0, x) = initial condition
     u(t, x) = g(t, x) boundary condition at the boundary of the space domain
     """

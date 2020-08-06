@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 import der_test as dt
 import utility as ut
-import grad_test as gt
+import diff as df
 
 
 def func(x):
@@ -25,6 +25,6 @@ dt.comp_grad(model_, a)
 print(dt.grad(model_, a))
 model__hess(a)
 
-#print(gt.grad(func, a))
-#print(gt.hess(func, a))
-print(0.5**2*gt.mixed_partial(func, a, 2, 2))
+#print(df.grad(func, a))
+#print(df.hess(func, a))
+print(0.5**2*df.partial(func, a, 2, 2))
