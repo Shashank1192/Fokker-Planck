@@ -22,12 +22,12 @@ def dgm_layer(l, x, s_1, s_l, num_nodes):
 
 # creates the full DGM architechture as a tensorflow model
 def dgm_model(dim, num_nodes, num_hidden_layers, name = "FP_solver"):
-    x = tf.keras.Input(shape = [None, dim + 1, ], name = 'x')
+    x = tf.keras.Input(shape = [None, dim, ], name = 'x')
     s_1 = tf.keras.layers.Dense(units = num_nodes, activation = 'tanh', name = 's_1')(x)
     s_l = s_1
     for l in range(1, num_hidden_layers):
         s_l = dgm_layer(l = l, x = x, s_1 = s_1, s_l = s_l, num_nodes = num_nodes)
-    f_x = tf.keras.layers.Dense(units = 1, activation = None, name = 'f_x')(s_l)
+    f_x = tf.reshape(tf.keras.layers.Dense(units = 1, activation = None, name = 'f_x')(s_l), shape = (tf.shape(x)[0], dim))
     model = tf.keras.Model(inputs = x, outputs = f_x, name = name)
     tf.keras.utils.plot_model(model, "../images/{}.png".format(model.name), show_shapes=True)
     return model

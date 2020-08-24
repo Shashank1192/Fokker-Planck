@@ -2,6 +2,9 @@
 
 import tensorflow as tf
 import numpy as np
+import solve
+import utility as ut
+
 
 def grad(func, input, dx = 1e-6):
     """
@@ -64,7 +67,7 @@ def hess(func, input, dx = 1e-4, dy = 1e-4):
     return tf.stack(hessians)
 
 
-def partial(func, input, i, dx = 1e-6):
+def partial(func, input, i, dx = 1e-4):
     """
     Description: Function to compute partial derivative w.r.t a a single variable
 
@@ -84,9 +87,8 @@ def partial(func, input, i, dx = 1e-6):
     hx = tf.constant(hx, dtype = tf.float64)
     for t in input:
         x = tf.reshape(t, (1, dim))
-        partials.append((func(x + hx) - func(x - hx))/(2*dx))
+        partials.append((-func(x + 2*hx) + 8*func(x + hx) - 8*func(x - hx) + func(x - 2*hx))/(12*dx))
     return tf.stack(partials)
-
 
 
 def mixed_partial(func, input, i, j, dx = 1e-4, dy = 1e-4):
@@ -118,3 +120,36 @@ def mixed_partial(func, input, i, j, dx = 1e-4, dy = 1e-4):
         right = (func(x + hx - hy) - func(x - hx - hy))/(2*dx)
         partials.append((left-right)/(2*dy))
     return tf.stack(partials)
+
+
+@tf.function
+def loss(x):
+    f = lambda x_: tf.reduce_sum(tf.math.square(tf.math.square(x_)), axis = 0)
+    return tf.vectorized_map(f, x)
+
+@ut.tester
+@tf.function
+def comp_single_hess(f, x):
+    return tf.hessians(f(x), x)
+
+#@tf.function
+def comp_hess(f, x):
+    hess = []
+    for v in x:
+        hess.append(comp_single_hess(f, [v]))
+    return hess
+
+@ut.tester
+@tf.function
+def comp_grad(f, x):
+    return tf.gradients(f(x), x)
+
+@ut.tester
+@tf.function
+def comp_partial(f, x, i):
+    return tf.gradients(tf.gradients(f(x), x), x)
+
+@ut.tester
+@tf.function
+def model_hess(x):
+    return tf.hessians(model(x), x)
