@@ -19,8 +19,5 @@ def diff_op(func, input, a=0.3, b=0.5, sigma=0.1):
         d2_fx = tape2.gradient(d_fx, input)
     return  -dc_fx + 0.5 * sigma**2 * d2_fx
 
-def test_func(x):
-    return x * x
-
-
-##tf.gradients(f, inp)[0][:,0]
+def init_cond(input):
+    return input

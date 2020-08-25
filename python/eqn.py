@@ -9,16 +9,18 @@ class QuasiLinearPDE0(object):
     u(0, x) = initial condition
     u(t, x) = g(t, x) boundary condition at the boundary of the space domain
     """
-    def __init__(self, loss, space_domain, time_domain):
+    def __init__(self, diff_op, init_cond, bdry_cond, space_domain, time_domain):
         """
         Description: Constructor for QuasiLinearPDE0
         Args:   diff_op: differential operator L
-                init_con: initial condition u(0, x)
+                init_cond: initial condition u(0, x)
                 bdry_cond: boundary condition u(t, x) at the boundary of the space domain
                 space_domain: box doamin for space in form of a dx2 matrix, d = space dimension
                 time_domain: domain of time as a list/tuple/np.array [a, b]
         """
         self.diff_op = diff_op
+        self.init_cond = init_cond
+        self.bdry_cond = bdry_cond
         self.space_domain = np.array(space_domain)
         self.time_domain = time_domain
         self.space_dim = self.space_domain.shape[0]
@@ -38,11 +40,8 @@ class QuasiLinearPDE0(object):
         self.samples[:, self.space_dim] = (b - a)*np.random.random(num_samples) + a
         return self.samples
 
-
-
-"""
-fp = QuasiLinearPDE0(None, None, None, [[1, 2], [5, 9], [10, 67], [-3, 7]], [4, 5])
-fp.domain_sampler(10000)
-print(fp.samples)
-print(fp.samples[:, 0], len(fp.samples[:, 4]))
-"""
+    def loss(self, func):
+        """
+        Description: loss function for solving the PDE with DGM
+        """
+        return self.diff_op(func, x)**2 + self.init_cond(x)**2 + self.bdry_cond(x)**2
