@@ -4,7 +4,7 @@ import tensorflow as tf
 import numpy as np
 import solve
 import utility as ut
-from eqn1 import diff_op, test_func
+from eqn1 import diff_op, test_loss
 
 def grad(func, input, dx = 1e-6):
     """
@@ -154,7 +154,7 @@ def comp_partial(f, x, i):
 def model_hess(x):
     return tf.hessians(model(x), x)
 
-tf.keras.backend.set_floatx('float64')
+
 model = solve.dgm_model(dim=1, num_nodes=50, num_hidden_layers=4)
-inp =  tf.constant([[1.0], [4.0]], dtype=tf.float64)
-print(diff_op(test_func, inp))
+inp =  tf.constant([[1.0], [4.0]], dtype=tf.float32)
+print(test_loss(model, inp))

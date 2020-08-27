@@ -40,8 +40,8 @@ class QuasiLinearPDE0(object):
         self.samples[:, self.space_dim] = (b - a)*np.random.random(num_samples) + a
         return self.samples
 
-    def loss(self, func):
+    def loss(self, func, input):
         """
         Description: loss function for solving the PDE with DGM
         """
-        return self.diff_op(func, x)**2 + self.init_cond(x)**2 + self.bdry_cond(x)**2
+        return self.diff_op(func, input)**2 + self.init_cond(input)**2 + self.bdry_cond(input)**2

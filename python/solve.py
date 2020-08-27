@@ -36,11 +36,15 @@ class DGMSolver(object):
     """
     Implements a Python object that solves quasi-linear parabolic PDEs using DGM architechture
     """
-    def __init__(self, eqn, dim, num_nodes, num_hidden_layers, name = "DGMSolver"):
+    def __init__(self, eqn, num_nodes, num_hidden_layers, name = "DGMSolver"):
         self.eqn = eqn
-        self.dim = dim
+        self.dim = eqn.space_dim + 1
         self.num_nodes = num_nodes
         self.num_hidden_layers = num_hidden_layers
         self.name = name
+        self.model = dgm_model(dim, num_nodes, num_hidden_layers)
+
+    def compile(self):
+        self.loss = lambda y_pred, y_true: self.eqn.loss(self.model)
 #model = dgm_model(dim = 2, num_nodes = 50, num_hidden_layers = 4)
 #model.summary()
