@@ -1,5 +1,5 @@
 import tensorflow as tf
-import eqn
+import numpy as np
 
 # creates layer S_(l+1) from S_l, x and S_1 according to the DGM paper  ---->  https://arxiv.org/abs/1708.07469
 def dgm_layer(l, x, s_1, s_l, num_nodes):
@@ -36,15 +36,46 @@ class DGMSolver(object):
     """
     Implements a Python object that solves quasi-linear parabolic PDEs using DGM architechture
     """
-    def __init__(self, eqn, num_nodes, num_hidden_layers, name = "DGMSolver"):
-        self.eqn = eqn
-        self.dim = eqn.space_dim + 1
+    def __init__(self, eq, num_nodes, num_hidden_layers, name = "DGMSolver", graph = True, graph_path = None):
+        # assign attributes
+        self.eq = eq
+        self.dim = eq.dim
         self.num_nodes = num_nodes
         self.num_hidden_layers = num_hidden_layers
         self.name = name
-        self.model = dgm_model(dim, num_nodes, num_hidden_layers)
 
-    def compile(self):
-        self.loss = lambda y_pred, y_true: self.eqn.loss(self.model)
+        # build the DGM arcitechture
+        self.x = tf.keras.Input(shape = [None, self.dim, ], name = 'x')
+        s_1 = tf.keras.layers.Dense(units = num_nodes, activation = 'tanh', name = 's_1')(self.x)
+        s_l = s_1
+        for l in range(1, num_hidden_layers):
+            s_l = dgm_layer(l = l, x = self.x, s_1 = s_1, s_l = s_l, num_nodes = num_nodes)
+        f_x = tf.reshape(tf.keras.layers.Dense(units = 1, activation = None, name = 'f_x')(s_l), shape = (tf.shape(self.x)[0], self.dim))
+        self.model = tf.keras.Model(inputs = self.x, outputs = f_x, name = name)
+
+        # plot the computational graph of the neural network
+        if graph:
+            if graph_path is None:
+                graph_path = "../images/{}.png".format(self.model.name)
+            tf.keras.utils.plot_model(self.model, graph_path, show_shapes=True)
+
+        # complie the model with custom loss function
+        def custom_loss(input):
+            def loss(y_true, y_pred):
+                return self.eq.loss(self.model, input)
+            return loss
+
+        self.model.compile(loss = custom_loss(self.x), optimizer='adam')
+
+    def synthesize_data(self, num_samples = int(1e4)):
+        inputs = self.eq.domain_sampler(num_samples = num_samples)
+        outputs = np.zeros((num_samples, 1))
+        return inputs, outputs
+
+    def solve(self, num_samples = int(1e4)):
+        inputs, outputs = self.synthesize_data(num_samples)
+        self.model.fit(inputs, outputs)
+
+
 #model = dgm_model(dim = 2, num_nodes = 50, num_hidden_layers = 4)
 #model.summary()

@@ -26,7 +26,17 @@ def init_cond(input):
 def bdry_cond(input):
     return 0.
 
+"""
 pde = eqn.QuasiLinearPDE0(diff_op, init_cond, bdry_cond, [[-10., 10.]], [0., 10.])
 model = solve.dgm_model(dim=1, num_nodes=50, num_hidden_layers=4)
 test_input = tf.constant([[1.0], [4.0]], dtype=tf.float32)
 print(pde.loss(model, test_input))
+"""
+ode = eqn.ODE0(diff_op, init_cond, [-10., 10.])
+model = solve.dgm_model(dim=1, num_nodes=50, num_hidden_layers=4)
+test_input = tf.constant([[1.0], [4.0]], dtype=tf.float32)
+print(ode.loss(model, test_input))
+
+
+solver  = solve.DGMSolver(eq = ode, num_nodes = 50, num_hidden_layers = 3)
+solver.solve()

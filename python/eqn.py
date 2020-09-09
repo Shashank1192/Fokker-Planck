@@ -24,6 +24,7 @@ class QuasiLinearPDE0(object):
         self.space_domain = np.array(space_domain)
         self.time_domain = time_domain
         self.space_dim = self.space_domain.shape[0]
+        self.dim = self.space_dim + 1
 
     @ut.timer
     def domain_sampler(self, num_samples):
@@ -45,3 +46,40 @@ class QuasiLinearPDE0(object):
         Description: loss function for solving the PDE with DGM
         """
         return self.diff_op(func, input)**2 + self.init_cond(input)**2 + self.bdry_cond(input)**2
+
+
+class ODE0(object):
+    """
+    Implements ODEs with initial condition
+    Lu = 0, x in a box domain
+    u(0) = initial condition
+    """
+    def __init__(self, diff_op, init_cond, domain):
+        """
+        Description: Constructor for ODE0
+        Args:   diff_op: differential operator L
+                init_cond: initial condition u(0, x)
+                domain: domain of x as a list/tuple/np.array [a, b]
+        """
+        self.diff_op = diff_op
+        self.init_cond = init_cond
+        self.domain = domain
+        self.dim = 1
+
+    @ut.timer
+    def domain_sampler(self, num_samples):
+        """
+        Description: sampling function for space-time domain
+        Args: number of samples to generate
+        Returns: an np.array where each row each is a singular sample from the space-time domain with the last coordinate being time
+        """
+        self.samples = np.zeros((num_samples, self.dim))
+        a, b = self.domain
+        self.samples[:, 0] = (b - a)*np.random.random(num_samples) + a
+        return self.samples
+
+    def loss(self, func, input):
+        """
+        Description: loss function for solving the PDE with DGM
+        """
+        return self.diff_op(func, input)**2 + self.init_cond(input)**2
