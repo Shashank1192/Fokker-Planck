@@ -5,7 +5,8 @@ import eqn
 import solve
 
 
-def diff_op(func, input, a=0.3, b=0.5, sigma=0.1):
+def diff_op(func, input_, a=0.3, b=0.5, sigma=0.1):
+    input = tf.convert_to_tensor(input_)
     num_x = tf.shape(input)[0]
     dim = tf.shape(input)[1]
     with tf.GradientTape() as tape2:
@@ -17,6 +18,7 @@ def diff_op(func, input, a=0.3, b=0.5, sigma=0.1):
             c_fx = tf.keras.layers.Multiply()([c, fx])
             dc_fx = tape1.gradient(c_fx, input)
             d_fx = tape1.gradient(fx, input)
+        print("debug {}, {}".format(input, type(input)))
         d2_fx = tape2.gradient(d_fx, input)
     return  -dc_fx + 0.5 * sigma**2 * d2_fx
 
@@ -26,17 +28,10 @@ def init_cond(input):
 def bdry_cond(input):
     return 0.
 
-"""
+#"""
 pde = eqn.QuasiLinearPDE0(diff_op, init_cond, bdry_cond, [[-10., 10.]], [0., 10.])
-model = solve.dgm_model(dim=1, num_nodes=50, num_hidden_layers=4)
 test_input = tf.constant([[1.0], [4.0]], dtype=tf.float32)
+model = solve.dgm_model(dim=1, num_nodes=50, num_hidden_layers=4)
 print(pde.loss(model, test_input))
-"""
-ode = eqn.ODE0(diff_op, init_cond, [-10., 10.])
-model = solve.dgm_model(dim=1, num_nodes=50, num_hidden_layers=4)
-test_input = tf.constant([[1.0], [4.0]], dtype=tf.float32)
-print(ode.loss(model, test_input))
-
-
-solver  = solve.DGMSolver(eq = ode, num_nodes = 50, num_hidden_layers = 3)
-solver.solve()
+solver  = solve.DGMSolver(eq = pde, num_nodes = 50, num_hidden_layers = 3)
+#solver.solve()
