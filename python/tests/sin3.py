@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+import matplotlib.pyplot as plt
 
 class DGMLayer(tf.keras.layers.Layer):
     """
@@ -39,29 +41,74 @@ class DGMModel(tf.keras.models.Model):
     """
     Description: Class for implementing the DGM architechture
     """
-    def __init__(self, input_dim, num_nodes, num_dgm_layers, activation, dtype=tf.float64):
+    def __init__(self, input_dim=1, num_nodes=50, num_dgm_layers=3, activation=tf.keras.activations.tanh, dtype=tf.float64):
         super(DGMModel, self).__init__(dtype=dtype)
         self.input_dim = input_dim
         self.num_nodes = num_nodes
         self.num_dgm_layers = num_dgm_layers
         self.activation = activation
-        self.S_layers = tf.keras.layers.Dense(units=self.num_nodes, activation=self.activation, name='S_1', dtype=dtype)
+        self.S_layers = [tf.keras.layers.Dense(units=self.num_nodes, activation=self.activation, name='S_1', dtype=dtype)]
         for i in range(num_dgm_layers):
-            self.S_layers = DGMLayer(S_l_layer=self.S_layers, input_dim=self.input_dim, num_nodes=self.num_nodes, activation=self.activation, dtype=dtype)
+            self.S_layers.append(DGMLayer(S_l_layer=self.S_layers[i], input_dim=self.input_dim, num_nodes=self.num_nodes, activation=self.activation, dtype=dtype))
         self.f_layer = tf.keras.layers.Dense(units=1, use_bias=True, activation=None, name='f_layer', dtype=dtype)
 
     def call(self, input):
-         x = self.S_layers(input)
+         x = self.S_layers[self.num_dgm_layers](input)
          return self.f_layer(x)
 
-num_nodes = 50
+    def plot(self, interval = [0.0, 2*np.pi]):
+        x = np.linspace(interval[0], interval[1], 100)
+        x_t = tf.constant(np.reshape(x, (100, 1)), dtype = tf.float32)
+        y_t = self.call(x_t)
+        plt.plot(x_t.numpy(), y_t.numpy())
+        plt.plot(x, np.sin(x))
+        plt.axes().set_aspect('equal', 'datalim')
+        plt.show()
 
-"""
-S_1 = tf.keras.layers.Dense(units = num_nodes, activation = 'tanh', name = 's_1', dtype=tf.float64)
-dgm = DGMLayer(S_1, 2, 50, tf.keras.activations.tanh)
-print(dgm(x))
-"""
-x = tf.constant([[1, 2], [3, 4]], dtype = tf.float64)
-model = DGMModel(2, 50, 3, tf.keras.activations.tanh)
-print(model(x))
-print(model.summary())
+class DiffLayer(tf.keras.layers.Layer):
+    def __init__(self, func):
+        super(DiffLayer, self).__init__()
+        self.func = func
+
+    def call(self, input):
+        with tf.GradientTape() as tape:
+            tape.watch(input)
+            return tape.gradient(self.func(input), input)
+
+
+x = tf.constant([[1], [3]], dtype = tf.float64)
+smodel = DGMModel(dtype = tf.float32)
+print(smodel(x))
+print(smodel.summary())
+dsmodel = DiffLayer(smodel)
+d2smodel = DiffLayer(smodel)
+
+
+def loss0(input):
+    zero = tf.constant([[0.]], dtype=tf.float32)
+    loss_0 = tf.reduce_mean(tf.square(d2smodel(input) + smodel(input)))
+    loss_1 = tf.square(dsmodel(zero) - 1.0)[0][0]
+    loss_2 = tf.square(smodel(zero))[0][0]
+    return loss_0 + loss_1 + loss_2
+
+def loss1(input):
+    zero = tf.constant([[0.]], dtype=tf.float32)
+    loss_0 = tf.reduce_mean(tf.square(dsmodel(input) - tf.cos(input)))
+    loss_1 = tf.square(smodel(zero))[0][0]
+    return loss_0 + loss_1
+
+lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(0.0001, decay_steps=1000, decay_rate=0.96, staircase=True)
+
+optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+for i in range(1000):
+    x = tf.convert_to_tensor(np.random.rand(100, 1), dtype=tf.float32)
+    with tf.GradientTape() as tape:
+        loss_ = loss1(x)
+        grads = tape.gradient(loss_, smodel.trainable_weights)
+        optimizer.apply_gradients(zip(grads, smodel.trainable_weights))
+    print(loss_)
+    if loss_ < 1e-16:
+        break
+
+print(smodel.trainable_variables)
+smodel.plot()

@@ -52,18 +52,6 @@ class QuadModel(tf.keras.models.Model):
         y = self.layerSq(y)
         return y
 
-def true_grads(x, w, a=5., b=7.):
-    a_, b_ = w
-    x_ = x.numpy()[0]
-    #a_ = a__.numpy()
-    #b_ = b__.numpy()
-    A = (2*a_**2*x_ + 2*a_*b_ - 2*a**2*x_ - 2*a*b)
-    A2 = A*A
-    del_a = 2*A*(4*a_*x_ + 2*b_)
-    del_b = 2*A*(2*a_) + 4*b_*(b_-b)
-    return [del_b, del_a]
-
-
 
 x = tf.constant([[1, 2], [3, 4]], dtype = tf.float32)
 qmodel = QuadModel()
