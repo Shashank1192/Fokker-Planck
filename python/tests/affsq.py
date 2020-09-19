@@ -56,7 +56,7 @@ class DiffOp(tf.keras.layers.Layer):
             tape.watch(input)
             y = self.func(input)
             dy_dx = tape.gradient(y, input)
-        return tf.math.pow(dy_dx - 2*self.a**2 * input -2*self.a*self.b, 2) + tf.math.pow(self.func(tf.zeros_like(input)) - self.b, 2)
+        return tf.math.pow(dy_dx - 2*self.a**2 * input -2*self.a*self.b, 2) + tf.math.pow(self.func(tf.zeros_like(input)) - self.b**2, 2)
 
 class QuadModel(tf.keras.models.Model):
     def __init__(self):
@@ -74,15 +74,28 @@ class QuadModel(tf.keras.models.Model):
         self.add_loss(l)
         return y
 
-x = tf.constant([[1, 2], [3, 4]], dtype = tf.float64)
+def true_grads(x, w, a=5., b=7.):
+    a_, b_ = w
+    x_ = x.numpy()[0]
+    #a_ = a__.numpy()
+    #b_ = b__.numpy()
+    A = (2*a_**2*x_ + 2*a_*b_ - 2*a**2*x_ - 2*a*b)
+    A2 = A*A
+    del_a = 2*A*(4*a_*x_ + 2*b_)
+    del_b = 2*A*(2*a_) + 4*b_*(b_**2-b**2)
+    return [del_b, del_a]
+
+
+x = tf.constant([[1, 2], [3, 4]], dtype = tf.float32)
 qmodel = QuadModel()
 
-data_x = tf.constant(np.random.rand(10, 1))
-data_y = tf.constant(np.zeros((10, 1)))
+data_x = tf.constant(np.random.rand(5000, 1))
+data_y = tf.constant(np.zeros((10000, 1)))
 # Iterate over epochs.
 loss_metric = tf.keras.metrics.Mean()
 epochs = 1
-optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
+
+optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
 mse_loss_fn = tf.keras.losses.MeanSquaredError()
 
 for epoch in range(epochs):
@@ -97,8 +110,14 @@ for epoch in range(epochs):
             loss += sum(qmodel.losses)  # Add KLD regularization loss
 
         grads = tape.gradient(loss, qmodel.trainable_weights)
-        print('x = {}, w = {}, grads = {}, loss = {}'.format(x_batch_train, qmodel.trainable_weights, grads, qmodel.losses))
-        optimizer.apply_gradients(zip(grads, qmodel.trainable_weights))
+        w = [t.numpy()[0] for t in qmodel.trainable_weights]
+        g = [t.numpy()[0] for t in grads]
+        tg = true_grads(x_batch_train, qmodel.trainable_variables)
+        print([t.numpy()[0] for t in tg], g)
+        #print(w)
+        #print('x = {}, w = {}, grads = {}, loss = {}'.format(x_batch_train, w, g, qmodel.losses))
+        #print('true_grads = {}'.format())
+        optimizer.apply_gradients(zip(tg, qmodel.trainable_weights))
         #print(qmodel.trainable_variables)
 
         loss_metric(loss)
